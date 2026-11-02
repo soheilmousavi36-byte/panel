@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>داشبورد مدیریتی | گزارش هوشمند</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--bg:#0b1020;--panel:#121a2d;--panel2:#18233b;--border:#25314b;--text:#edf2ff;--muted:#91a0bd;--accent:#7c5cff;--cyan:#29d3c2;--pink:#f472b6;--orange:#f6ad55}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top right,#182449 0%,var(--bg) 45%);color:var(--text);font-family:Vazirmatn,sans-serif}
+.wrap{max-width:1500px;margin:auto;padding:28px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}.brand{display:flex;gap:14px;align-items:center}.logo{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,var(--accent),var(--cyan));display:grid;place-items:center;font-size:24px;box-shadow:0 8px 30px #7c5cff55}.eyebrow{color:var(--cyan);font-size:12px;font-weight:700;letter-spacing:1px}h1{font-size:26px;margin:3px 0}p{color:var(--muted);margin:0}.btn,button{border:1px solid var(--border);background:var(--panel2);color:var(--text);padding:10px 15px;border-radius:12px;cursor:pointer;font:inherit}.btn.primary,button.primary{background:linear-gradient(135deg,#7558f5,#4d8dff);border:0}.settings{margin:24px 0;padding:18px;background:#111a2cdd;border:1px solid var(--border);border-radius:18px}.settings summary{cursor:pointer;font-weight:700}.formgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:16px}.field label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}.field input{width:100%;background:#0b1222;border:1px solid var(--border);border-radius:10px;padding:11px;color:white;font:inherit;direction:ltr}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.notice{font-size:12px;color:#f6ad55;margin-top:10px}.status{margin:14px 0;color:var(--muted);font-size:13px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}.tab{padding:9px 15px;border-radius:12px;background:var(--panel);border:1px solid var(--border);cursor:pointer}.tab.active{background:#30265e;border-color:#7c5cff;color:#fff}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{background:linear-gradient(145deg,#151f35,#101727);border:1px solid var(--border);border-radius:18px;padding:20px;min-width:0}.kpi-label{color:var(--muted);font-size:13px}.kpi-value{font-size:30px;font-weight:800;margin:8px 0}.kpi-foot{font-size:12px;color:var(--cyan)}.charts{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;margin:16px 0}.chartbox{height:300px}.tablecard{margin-top:16px}.tablehead{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.tablehead input{background:#0b1222;border:1px solid var(--border);color:white;padding:10px;border-radius:10px;font:inherit;min-width:230px}.tablewrap{overflow:auto;max-height:520px;border:1px solid var(--border);border-radius:12px}table{border-collapse:collapse;width:100%;white-space:nowrap;font-size:13px}th{position:sticky;top:0;background:#202b45;color:#dbe5ff;text-align:right;padding:12px}td{padding:11px 12px;border-top:1px solid #25314b;color:#d3dcf1}tr:hover td{background:#18243a}.empty{padding:40px;text-align:center;color:var(--muted)}footer{text-align:center;color:#657492;font-size:12px;padding:24px}
+@media(max-width:900px){.formgrid{grid-template-columns:repeat(2,1fr)}.kpis{grid-template-columns:repeat(2,1fr)}.charts{grid-template-columns:1fr}}@media(max-width:520px){.wrap{padding:14px}.formgrid{grid-template-columns:1fr}.kpi-value{font-size:24px}h1{font-size:21px}}
+</style>
+</head>
+<body><div class="wrap">
+<header class="top"><div class="brand"><div class="logo">✦</div><div><div class="eyebrow">REPORTING • LIVE DATA</div><h1>داشبورد هوشمند مدیریتی</h1><p>نمای کلی اطلاعات Google Sheets</p></div></div><button class="primary" onclick="loadCurrent()">↻ به‌روزرسانی اطلاعات</button></header>
+<details class="settings" open><summary>⚙️ تنظیم اتصال به Google Sheets</summary>
+<div class="formgrid">
+<div class="field"><label>Google Sheets API Key</label><input id="apiKey" type="password" placeholder="AIza..."></div>
+<div class="field"><label>Spreadsheet ID فایل اول</label><input id="id1" placeholder="شناسه فایل اول"></div>
+<div class="field"><label>نام شیت اول (Tab)</label><input id="tab1" placeholder="Sheet1"></div>
+<div class="field"><label>Spreadsheet ID فایل دوم</label><input id="id2" placeholder="شناسه فایل دوم"></div>
+<div class="field"><label>نام شیت دوم (Tab)</label><input id="tab2" placeholder="Sheet1"></div>
+<div class="field"><label>Spreadsheet ID فایل سوم</label><input id="id3" placeholder="شناسه فایل سوم"></div>
+<div class="field"><label>نام شیت سوم (Tab)</label><input id="tab3" placeholder="Sheet1"></div>
+</div><div class="actions"><button class="primary" onclick="saveAndLoad()">ذخیره تنظیمات و اتصال</button><button onclick="clearSettings()">پاک‌کردن تنظیمات</button></div>
+<div class="notice">⚠️ API Key داخل مرورگر ذخیره می‌شود. فقط برای شیت‌های عمومی/قابل‌خواندن با API Key استفاده کنید. برای داده محرمانه، این نسخه مناسب نیست.</div></details>
+<div class="status" id="status">برای شروع، API Key و شناسه فایل‌ها و نام تب‌ها را وارد کنید.</div>
+<div class="tabs" id="tabs"></div>
+<section class="kpis">
+<div class="card"><div class="kpi-label">تعداد رکوردها</div><div class="kpi-value" id="kpiRows">—</div><div class="kpi-foot">ردیف‌های داده، بدون عنوان</div></div>
+<div class="card"><div class="kpi-label">تعداد ستون‌ها</div><div class="kpi-value" id="kpiCols">—</div><div class="kpi-foot">ساختار داده فعلی</div></div>
+<div class="card"><div class="kpi-label">تعداد مقادیر غیرخالی</div><div class="kpi-value" id="kpiFilled">—</div><div class="kpi-foot">در کل جدول فعلی</div></div>
+<div class="card"><div class="kpi-label">آخرین به‌روزرسانی</div><div class="kpi-value" style="font-size:19px" id="kpiTime">—</div><div class="kpi-foot">زمان محلی مرورگر</div></div>
+</section>
+<section class="charts"><div class="card"><h3>توزیع رکوردها بر اساس دسته</h3><p>تعداد مقادیر هر یک از ۱۰ مقدار پرتکرار ستون اول</p><div class="chartbox"><canvas id="barChart"></canvas></div></div><div class="card"><h3>ترکیب داده‌ها</h3><p>نسبت مقادیر پر و خالی در جدول</p><div class="chartbox"><canvas id="donutChart"></canvas></div></div></section>
+<section class="card tablecard"><div class="tablehead"><div><h3 style="margin:0">جدول اطلاعات</h3><p id="tableInfo">برای نمایش، ابتدا اتصال را انجام دهید.</p></div><input id="search" placeholder="جست‌وجو در تمام ستون‌ها..." oninput="renderTable()"><button onclick="downloadCSV()">خروجی CSV</button></div><div class="tablewrap" id="table"></div></section>
+<footer>Dashboard • Google Sheets API • GitHub Pages</footer>
+</div>
+<script>
+let sheets=[],active=0,bar=null,donut=null;
+const $=id=>document.getElementById(id);
+function setStatus(s){$('status').textContent=s}
+function readSettings(){return {key:$('apiKey').value.trim(),files:[1,2,3].map(i=>({id:$('id'+i).value.trim(),tab:$('tab'+i).value.trim()||'Sheet1'}))}}
+function saveAndLoad(){let c=readSettings();localStorage.setItem('gsdash_config',JSON.stringify(c));loadAll(c)}
+function clearSettings(){localStorage.removeItem('gsdash_config');$('apiKey').value='';[1,2,3].forEach(i=>{$('id'+i).value='';$('tab'+i).value='Sheet1'});sheets=[];renderTabs();setStatus('تنظیمات پاک شد.')}
+async function loadAll(c=readSettings()){if(!c.key){setStatus('API Key وارد نشده است.');return}sheets=[];setStatus('در حال دریافت اطلاعات از Google Sheets…');
+for(let i=0;i<c.files.length;i++){let f=c.files[i];if(!f.id){sheets.push({name:'فایل '+(i+1),rows:[],error:'Spreadsheet ID وارد نشده'});continue}
+try{let range=encodeURIComponent("'"+f.tab.replace(/'/g,"''")+"'!A:ZZ");let url=`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(f.id)}/values/${range}?key=${encodeURIComponent(c.key)}`;let res=await fetch(url);let data=await res.json();if(!res.ok)throw new Error(data.error?.message||'خطای API');let vals=data.values||[];let headers=vals[0]||[];let rows=vals.slice(1).filter(r=>r.some(v=>String(v??'').trim()!==''));sheets.push({name:'فایل '+(i+1)+' · '+f.tab,headers,rows,error:null})}catch(e){sheets.push({name:'فایل '+(i+1),rows:[],error:e.message})}}
+active=0;renderTabs();renderDashboard();let errs=sheets.filter(s=>s.error);setStatus(errs.length?'برخی فایل‌ها خطا داشتند: '+errs.map(x=>x.error).join(' | '):'اتصال انجام شد؛ اطلاعات با موفقیت دریافت شد.')}
+function loadCurrent(){loadAll()}
+function renderTabs(){$('tabs').innerHTML=sheets.map((s,i)=>`<button class="tab ${i===active?'active':''}" onclick="active=${i};renderTabs();renderDashboard()">${esc(s.name)}</button>`).join('')}
+function current(){return sheets[active]||{headers:[],rows:[],name:'—'}}
+function renderDashboard(){let s=current(),rows=s.rows||[],headers=s.headers||[];$('kpiRows').textContent=fmt(rows.length);$('kpiCols').textContent=fmt(headers.length);$('kpiFilled').textContent=fmt(rows.reduce((a,r)=>a+r.filter(v=>String(v??'').trim()!=='').length,0));$('kpiTime').textContent=new Date().toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'});$('tableInfo').textContent=s.error||`${rows.length.toLocaleString('fa-IR')} رکورد | ${headers.length} ستون`;
+let counts={};rows.forEach(r=>{let v=String(r[0]??'(خالی)').trim()||'(خالی)';counts[v]=(counts[v]||0)+1});let top=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+if(bar)bar.destroy();bar=new Chart($('barChart'),{type:'bar',data:{labels:top.map(x=>x[0]),datasets:[{label:'تعداد',data:top.map(x=>x[1]),backgroundColor:'#7c5cff',borderRadius:7}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'x',plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#aab6d0'},grid:{display:false}},y:{ticks:{color:'#aab6d0'},grid:{color:'#25314b'}}}}});
+let total=rows.flat().length,filled=rows.flat().filter(v=>String(v??'').trim()!=='').length;if(donut)donut.destroy();donut=new Chart($('donutChart'),{type:'doughnut',data:{labels:['پر','خالی'],datasets:[{data:[filled,Math.max(total-filled,0)],backgroundColor:['#29d3c2','#34415c'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#dbe5ff'}}}}});
+renderTable()}
+function renderTable(){let s=current(),headers=s.headers||[],rows=s.rows||[],q=$('search').value.toLowerCase();let filtered=rows.filter(r=>r.join(' ').toLowerCase().includes(q));if(s.error){$('table').innerHTML=`<div class="empty">خطا: ${esc(s.error)}</div>`;return}if(!headers.length){$('table').innerHTML='<div class="empty">داده‌ای پیدا نشد یا نام شیت اشتباه است.</div>';return}
+$('table').innerHTML=`<table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${filtered.slice(0,500).map(r=>`<tr>${headers.map((_,i)=>`<td>${esc(r[i]??'')}</td>`).join('')}</tr>`).join('')}</tbody></table>${filtered.length>500?'<div class="empty">برای سرعت، فقط ۵۰۰ ردیف اول نمایش داده شده است.</div>':''}`}
+function downloadCSV(){let s=current(),headers=s.headers||[],rows=s.rows||[];if(!headers.length)return;let csv=[headers,...rows].map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');let blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='dashboard-export.csv';a.click();URL.revokeObjectURL(a.href)}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function fmt(n){return Number(n).toLocaleString('fa-IR')}
+(function init(){[1,2,3].forEach(i=>$('tab'+i).value='Sheet1');let c=localStorage.getItem('gsdash_config');if(c){try{c=JSON.parse(c);$('apiKey').value=c.key||'';c.files.forEach((f,i)=>{$('id'+(i+1)).value=f.id||'';$('tab'+(i+1)).value=f.tab||'Sheet1'})}catch(e){}}})();
+</script>
+</body></html>
