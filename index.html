@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>داشبورد واحد کارت</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--bg:#0b1220;--panel:#111c2e;--panel2:#16243a;--line:#263750;--text:#edf4ff;--muted:#9fb2cc;--blue:#55a7ff;--teal:#36d6b0;--gold:#ffc76b;--red:#ff7e91}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top right,#14243a 0,#0b1220 55%);font-family:Tahoma,"Segoe UI",sans-serif;color:var(--text)}
+.wrap{max-width:1500px;margin:auto;padding:24px}.head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+h1{font-size:25px;margin:0 0 8px}.sub{color:var(--muted);font-size:13px}.upload{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+button,.filebtn{background:linear-gradient(135deg,#2e8cff,#1764c0);color:#fff;border:0;border-radius:10px;padding:11px 16px;cursor:pointer;font:inherit;font-size:13px}
+input[type=file]{max-width:250px;color:var(--muted)}.note{font-size:12px;color:var(--muted);margin:8px 0 18px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0}.card{background:linear-gradient(145deg,var(--panel),#101a2a);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 10px 25px #0002}
+.kpi .label{font-size:13px;color:var(--muted)}.kpi .num{font-size:27px;font-weight:bold;margin:12px 0 5px}.kpi .hint{font-size:12px;color:var(--teal)}
+.grid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px}.wide{grid-column:1/-1}.card h2{font-size:16px;margin:0 0 16px}.chartbox{height:320px;position:relative}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}.filters input,.filters select{background:#0b1524;border:1px solid var(--line);border-radius:9px;padding:10px;color:var(--text);font:inherit}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 10px;border-bottom:1px solid var(--line);text-align:right}th{color:#a9c8ed;background:#17263b;position:sticky;top:0}tbody tr:hover{background:#17263b}
+.tablewrap{max-height:440px;overflow:auto;border:1px solid var(--line);border-radius:10px}.status{color:var(--gold);font-size:12px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tabs button{background:#18263b;border:1px solid var(--line)}.tabs button.active{background:#2379d4}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.wide{grid-column:auto}}@media(max-width:520px){.wrap{padding:12px}.kpis{grid-template-columns:1fr 1fr}.kpi .num{font-size:20px}}
+</style>
+</head>
+<body><div class="wrap">
+<header class="head"><div><h1>داشبورد مدیریتی واحد کارت</h1><div class="sub">گزارش صدور، تحویل، طرح کارت، کارت‌های عودتی و ووچرها</div></div>
+<div class="upload"><button id="refreshBtn">به‌روزرسانی اطلاعات</button></div></header>
+<div class="note">اطلاعات به‌صورت مستقیم از Google Sheets دریافت می‌شود. برای مشاهده آخرین تغییرات، روی «به‌روزرسانی اطلاعات» بزنید.</div>
+<div id="status" class="status">در حال دریافت اطلاعات از Google Sheets…</div>
+<div class="kpis">
+<div class="card kpi"><div class="label">مجموع صدور ثبت‌شده</div><div class="num" id="kTotal">—</div><div class="hint">بر اساس شیت «فایل»</div></div>
+<div class="card kpi"><div class="label">مجموع تحویلی ردبانک</div><div class="num" id="kRed">—</div><div class="hint">تعداد کل تحویلی</div></div>
+<div class="card kpi"><div class="label">مجموع تحویلی راهبرد</div><div class="num" id="kRah">—</div><div class="hint">تعداد کل تحویلی</div></div>
+<div class="card kpi"><div class="label">تعداد کارت‌های عودتی</div><div class="num" id="kReturn">—</div><div class="hint">بر اساس شیت «کارت های عودتی»</div></div>
+</div>
+<div class="grid">
+<section class="card"><h2>صدور به تفکیک روز</h2><div class="chartbox"><canvas id="dailyChart"></canvas></div></section>
+<section class="card"><h2>صدور به تفکیک طرح کارت</h2><div class="chartbox"><canvas id="designChart"></canvas></div></section>
+<section class="card"><h2>کارت‌های عودتی به تفکیک طرح</h2><div class="chartbox"><canvas id="returnChart"></canvas></div></section>
+<section class="card"><h2>توزیع تحویل ردبانک و راهبرد</h2><div class="chartbox"><canvas id="deliveryChart"></canvas></div></section>
+<section class="card wide"><h2>داده‌های شیت فایل</h2><div class="filters"><input id="search" placeholder="جست‌وجو در جدول…"><select id="dateFilter"><option value="">همه تاریخ‌ها</option></select><button id="csvBtn">خروجی CSV</button></div><div class="tablewrap"><table><thead><tr><th>تاریخ</th><th>شماره فایل/کارت</th><th>تحویلی ردبانک</th><th>تحویلی راهبرد</th><th>جمع کل</th><th>طرح</th><th>تعداد ردبانک</th><th>تعداد راهبرد</th></tr></thead><tbody id="tbody"></tbody></table></div></section>
+<section class="card wide"><h2>گزارش شیت‌های دیگر</h2><div class="tabs" id="tabs"></div><div class="tablewrap"><table><thead id="otherHead"></thead><tbody id="otherBody"></tbody></table></div></section>
+</div></div>
+<script>
+const API_KEY='AIzaSyADFywIKvpHTPOfy0GFPpOwgEk_nQt-pcE';
+const SPREADSHEET_ID='1gcyPTi5hxflwArEsKxd_hupTTiSRslG35WNV6_EZFgA';
+const SHEETS=['داشبورد','فایل','کارت خام تحویلی ','کارت های عودتی','گزارش طرح کارت','ووچرها'];
+let sheetData={},records=[],currentOther='کارت خام تحویلی ',charts={};
+const fmt=n=>Number(n||0).toLocaleString('fa-IR');
+function val(v){if(v===null||v===undefined)return '';return String(v).trim()}
+function destroyCharts(){Object.values(charts).forEach(c=>c&&c.destroy());charts={}}
+function drawChart(id,type,labels,datasets,opts={}){const ctx=document.getElementById(id);charts[id]=new Chart(ctx,{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#dce9fa'}}},scales:type==='doughnut'?{}:{x:{ticks:{color:'#9fb2cc'},grid:{color:'#263750'}},y:{ticks:{color:'#9fb2cc'},grid:{color:'#263750'}}},...opts}})}
+function sheetRows(name){return sheetData[name]||[]}
+async function loadGoogleSheets(){
+ const status=document.getElementById('status');
+ status.textContent='در حال دریافت اطلاعات از Google Sheets…';
+ try{
+  const result={};
+  for(const name of SHEETS){
+    const range=`'${name.replace(/'/g,"''")}'!A:ZZ`;
+    const url=`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}?key=${API_KEY}`;
+    const resp=await fetch(url);
+    const data=await resp.json();
+    if(!resp.ok) throw new Error(data.error?.message||`خطا در شیت ${name}`);
+    result[name]=data.values||[];
+  }
+  sheetData=result;
+  parseFileSheet();makeTabs();renderOther(currentOther);
+ }catch(err){
+  status.textContent='خطا در دریافت داده‌ها: '+err.message+' | دسترسی فایل را روی Anyone with the link → Viewer قرار بده و نام شیت‌ها را بررسی کن.';
+ }
+}
+function parseFileSheet(){
+ let rows=sheetRows('فایل'), out=[], date='';
+ for(let i=1;i<rows.length;i++){let r=rows[i]; if(val(r[0]))date=val(r[0]); if(!date)continue;
+   if(val(r[0])||val(r[5])){let red=Number(r[2])||0,rah=Number(r[3])||0,all=Number(r[4])||red+rah;
+    out.push({date,file:r[1],red,rah,all,design:val(r[5]),redDesign:Number(r[6])||0,rahDesign:Number(r[7])||0});
+   }
+ }
+ records=out;
+ const summary=out.filter(x=>x.file!==''&&x.file!==null&&x.file!==undefined);
+ const totalRed=summary.reduce((a,x)=>a+x.red,0),totalRah=summary.reduce((a,x)=>a+x.rah,0),total=summary.reduce((a,x)=>a+x.all,0);
+ document.getElementById('kTotal').textContent=fmt(total);
+ document.getElementById('kRed').textContent=fmt(totalRed);
+ document.getElementById('kRah').textContent=fmt(totalRah);
+ let returns=sheetRows('کارت های عودتی').slice(1).reduce((a,r)=>a+(Number(r[3])||0),0);
+ document.getElementById('kReturn').textContent=fmt(returns);
+ let dayMap={}, designMap={}, redMap={}, rahMap={}, retMap={};
+ summary.forEach(x=>dayMap[x.date]=(dayMap[x.date]||0)+x.all);
+ out.forEach(x=>{if(x.design){designMap[x.design]=(designMap[x.design]||0)+x.redDesign+x.rahDesign;redMap[x.design]=(redMap[x.design]||0)+x.redDesign;rahMap[x.design]=(rahMap[x.design]||0)+x.rahDesign;}});
+ sheetRows('کارت های عودتی').slice(1).forEach(r=>{if(val(r[2]))retMap[val(r[2])]=(retMap[val(r[2])]||0)+(Number(r[3])||0)});
+ destroyCharts();
+ drawChart('dailyChart','bar',Object.keys(dayMap),[{label:'تعداد صدور',data:Object.values(dayMap),backgroundColor:'#55a7ff',borderRadius:5}]);
+ let ds=Object.entries(designMap).sort((a,b)=>b[1]-a[1]).slice(0,15);
+ drawChart('designChart','bar',ds.map(x=>x[0]),[{label:'تعداد',data:ds.map(x=>x[1]),backgroundColor:'#36d6b0',borderRadius:5}],{indexAxis:'y'});
+ let rs=Object.entries(retMap).sort((a,b)=>b[1]-a[1]).slice(0,15);
+ drawChart('returnChart','bar',rs.map(x=>x[0]),[{label:'عودتی',data:rs.map(x=>x[1]),backgroundColor:'#ff7e91',borderRadius:5}],{indexAxis:'y'});
+ drawChart('deliveryChart','doughnut',['ردبانک','راهبرد'],[{data:[totalRed,totalRah],backgroundColor:['#55a7ff','#36d6b0'],borderWidth:0}]);
+ populateDates(summary);renderTable();
+ status.textContent=`اطلاعات Google Sheets با موفقیت دریافت شد؛ ${fmt(summary.length)} ردیف اصلی از شیت «فایل» خوانده شد.`;
+}
+function populateDates(summary){let s=document.getElementById('dateFilter');s.innerHTML='<option value="">همه تاریخ‌ها</option>';[...new Set(summary.map(x=>x.date))].forEach(d=>s.add(new Option(d,d)))}
+function renderTable(){let q=document.getElementById('search').value.toLowerCase(),date=document.getElementById('dateFilter').value;
+ let rows=records.filter(x=>(!date||x.date===date)&&JSON.stringify(x).toLowerCase().includes(q)).slice(0,1000);
+ document.getElementById('tbody').innerHTML=rows.map(x=>`<tr><td>${x.date}</td><td>${val(x.file)}</td><td>${fmt(x.red)}</td><td>${fmt(x.rah)}</td><td>${fmt(x.all)}</td><td>${x.design}</td><td>${fmt(x.redDesign)}</td><td>${fmt(x.rahDesign)}</td></tr>`).join('');
+}
+function renderOther(name){currentOther=name;let rows=sheetRows(name),head=rows[0]||[];document.getElementById('otherHead').innerHTML='<tr>'+head.map(x=>`<th>${val(x)}</th>`).join('')+'</tr>';document.getElementById('otherBody').innerHTML=rows.slice(1).filter(r=>r.some(v=>val(v))).slice(0,1000).map(r=>'<tr>'+head.map((_,i)=>`<td>${val(r[i])}</td>`).join('')+'</tr>').join('')}
+function makeTabs(){let names=['کارت خام تحویلی ','کارت های عودتی','گزارش طرح کارت','ووچرها'];let el=document.getElementById('tabs');el.innerHTML='';names.forEach(n=>{let b=document.createElement('button');b.textContent=n.trim();b.onclick=()=>{document.querySelectorAll('#tabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderOther(n)};el.appendChild(b)});el.firstChild?.classList.add('active')}
+document.getElementById('search').addEventListener('input',renderTable);document.getElementById('dateFilter').addEventListener('change',renderTable);
+document.getElementById('csvBtn').onclick=()=>{let rows=[['تاریخ','فایل/کارت','تحویلی ردبانک','تحویلی راهبرد','جمع','طرح','تعداد ردبانک','تعداد راهبرد'],...records.map(x=>[x.date,x.file,x.red,x.rah,x.all,x.design,x.redDesign,x.rahDesign])];let csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='گزارش_واحد_کارت.csv';a.click();URL.revokeObjectURL(a.href)};
+document.getElementById('refreshBtn').onclick=loadGoogleSheets;loadGoogleSheets();
+</script></body></html>
